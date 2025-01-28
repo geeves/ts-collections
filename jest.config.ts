@@ -6,5 +6,9 @@ const config: Config.InitialOptions = {
     verbose: true,
     automock: false,
     setupFilesAfterEnv: ["./jest.setup.ts"],
+    reporters: [
+        "default",
+        ["jest-junit", {outputDirectory: "reports", outputName: "report.xml"}],
+    ]
 };
 export default config;

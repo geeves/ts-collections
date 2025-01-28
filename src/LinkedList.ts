@@ -1,14 +1,18 @@
+/**
+ * A LinkedList implementation based largely on
+ * Java's LinkedList
+ */
 class LinkedList<T> {
 
   private first: LinkedListNode<T> | null = null;
   private last: LinkedListNode<T> | null = null;
-  private size: number = 0;
+  private listSize: number = 0;
   private modCount: number = 0;
 
   constructor() {
     this.first = null;
     this.last = null;
-    this.size = 0;
+    this.listSize = 0;
     this.modCount = 0;
   }
 
@@ -23,14 +27,14 @@ class LinkedList<T> {
     const newNode: LinkedListNode<T> = new LinkedListNode<T>(last, value, null);
     this.last = newNode;
     if (last === null) {
-      console.log(`Adding ${newNode.item}`)
+      // console.log(`Adding ${newNode.item}`)
       this.first = newNode;
     } else {
       // @ts-ignore
-      console.log(`Updating Last ${newNode.item}`)
+      // console.log(`Updating Last ${newNode.item}`)
       last.next = newNode;
     }
-    this.size++;
+    this.listSize++;
     this.modCount++;
   }
 
@@ -43,7 +47,7 @@ class LinkedList<T> {
     } else {
       first.prev = newNode;
     }
-    this.size++;
+    this.listSize++;
     this.modCount++;
   }
 
@@ -75,9 +79,21 @@ class LinkedList<T> {
     return this.unlinkFirst(first);
   }
 
+  public removeLast(): T | null {
+    const last: LinkedListNode<T> | null = this.last;
+    if (null === last) {
+      throw new Error();
+    }
+    return this.unlinkLast(last);
+  }
+
   public peek(): T | null {
     const first: LinkedListNode<T> | null = this.first;
     return (first === null) ? null : first.item;
+  }
+
+  public remove(x: LinkedListNode<T>) : T | null {
+    return this.unlink(x);
   }
 
   private unlinkFirst(f: LinkedListNode<T>): T | null {
@@ -91,7 +107,7 @@ class LinkedList<T> {
     } else {
       next.prev = null;
     }
-    this.size--;
+    this.listSize--;
     this.modCount++;
     return element;
   }
@@ -101,14 +117,14 @@ class LinkedList<T> {
     const element: T | null = l.item;
     const prev: LinkedListNode<T> | null = l.prev;
     l.item = null;
-    l.prev = null; // help GC
+    l.prev = null;
     this.last = prev;
-    if (prev == null) {
+    if (null === prev) {
       this.first = null;
     } else {
       prev.next = null;
     }
-    this.size--;
+    this.listSize--;
     this.modCount++;
     return element;
   }
@@ -134,17 +150,17 @@ class LinkedList<T> {
     }
 
     x.item = null;
-    this.size--;
+    this.listSize--;
     this.modCount++;
     return element;
   }
 
-  public getSize(): number {
-    return this.size;
+  public size(): number {
+    return this.listSize;
   }
 
   public length(): number {
-    return this.getSize();
+    return this.size();
   }
 
   public static of(...args: any[]): LinkedList<any> {
@@ -161,14 +177,40 @@ class LinkedList<T> {
     return this.indexOf(o) >= 0;
   }
 
+  public get(i: number): T | null {
+    let idx: number = 0;
+    let x: LinkedListNode<T> | null = this.first;
+    if (i >= this.listSize || 0 > i) {
+      throw new Error("IndexOutOfBoundsError");
+    }
+    while(x !== null) {
+      if (i === idx) {
+        return x.item;
+      }
+      x = x.next;
+      idx++;
+    }
+    return null;
+  }
+
+  public getByValue(s: string): LinkedListNode<T> | null {
+    let idx: number = 0;
+    let x: LinkedListNode<T> | null = this.first;
+    while(x !== null) {
+      if (s === x.item) {
+        return x;
+      }
+      x = x.next;
+      idx++;
+    }
+    return null;
+  }
+
   public indexOf(value: T): number {
     let index: number = 0;
-    console.log(`value is ${value}`)
     if (null === value) {
-      console.log("Null")
       let x: LinkedListNode<T> | null = this.first;
       while (x !== null) {
-        console.log(x.item);
         if (null === x.item) {
           return index;
         }
@@ -176,11 +218,8 @@ class LinkedList<T> {
         index++;
       }
     } else {
-      console.log("Not Null")
       let x = this.first;
-      console.log(x);
       while (x !== null) {
-        console.log(x.item);
         if (value === x.item) {
           return index;
         }
@@ -188,11 +227,59 @@ class LinkedList<T> {
         index++;
       }
     }
-
     return -1;
   }
 
+  public reverse(): void {
+    const f: LinkedListNode<T> | null = this.first;
+    this.first = this.last;
+    this.reverseList(f);
+    this.last = f;
+    this.modCount++;
+  }
+
+  // Next: B    C    D    _
+  // Node: A -> B -> C -> D
+  // Prev: _    A    B    C
+
+  // Next: _    A    B    C
+  // Node: A -> B -> C <- D
+  // Prev: B    C    D    _
+
+  private reverseList(head: LinkedListNode<T> | null): void {
+    if (null === head) {
+      return;
+    }
+    const n: LinkedListNode<T> | null = head.next;
+
+    head.next = head.prev;
+    head.prev = n;
+    return this.reverseList(n)
+  }
+
+  public toString(): string {
+    let x = this.first;
+    let a = new Array(this.size());
+    let i = 0;
+    while (null !== x) {
+      a[i] = x.item
+      x = x.next
+      i++
+    }
+    return a.toString();
+  }  
+  
+  // public filter<T extends object>(
+  //   obj: LinkedListNode<T>,
+  //   fn: (entry: Entry<T>, i: number, arr: Entry<T>[]) => boolean
+  // ) {
+  //   return Object.fromEntries(
+  //     (Object.entries(obj) as Entry<T>[]).filter(fn)
+  //   ) as Partial<T>
+  // }
+
 }
+
 
 class LinkedListNode<T> {
   item: T | null = null;
@@ -218,4 +305,5 @@ class LinkedListNode<T> {
   }
 }
 
+export {LinkedListNode};
 export default LinkedList;
